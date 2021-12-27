@@ -2,7 +2,9 @@ package com.doldolseo.doldolseo_msa_crew.service;
 
 import com.doldolseo.doldolseo_msa_crew.domain.Crew;
 import com.doldolseo.doldolseo_msa_crew.dto.CrewDTO;
+import com.doldolseo.doldolseo_msa_crew.dto.CrewPageDTO;
 import com.doldolseo.doldolseo_msa_crew.repository.CrewRepository;
+import com.doldolseo.doldolseo_msa_crew.utils.PagingParams;
 import com.doldolseo.doldolseo_msa_crew.utils.UploadCrewFileUtil;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -24,8 +26,17 @@ public class CrewServiceImpl implements CrewService {
     ModelMapper modelMapper;
 
     @Override
-    public Page<CrewDTO> getCrewList(Pageable pageable) {
-        return null;
+    public CrewPageDTO getCrewList(Pageable pageable) {
+        Page<CrewDTO> crewPage = entityPageToDtoPage(repository.findAll(pageable));
+        PagingParams pagingParams = new PagingParams(5, crewPage);
+
+        CrewPageDTO crewPageDTO = new CrewPageDTO();
+        crewPageDTO.setCrewList(crewPage.getContent());
+        crewPageDTO.setEndBlockPage(pagingParams.getStartBlockPage());
+        crewPageDTO.setEndBlockPage(pagingParams.getEndBlockPage());
+        crewPageDTO.setTotalPages(pagingParams.getTotalPages());
+
+        return crewPageDTO;
     }
 
     @Override
@@ -51,7 +62,7 @@ public class CrewServiceImpl implements CrewService {
 
     @Override
     public CrewDTO getCrew(Long crewNo) {
-        return null;
+        return entityToDto(repository.findByCrewNo(crewNo));
     }
 
     @Override

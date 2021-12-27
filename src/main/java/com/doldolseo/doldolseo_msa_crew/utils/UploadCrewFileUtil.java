@@ -21,7 +21,7 @@ public class UploadCrewFileUtil extends UploadFileUtil {
             String originalImgFileName = crewImgFile.getOriginalFilename();
             String fileName = crewName + "." + originalImgFileName.substring(originalImgFileName.lastIndexOf(".") + 1);
             makeDirIfNoExist(CREW_IMG_PATH);
-            Path savePath = Paths.get(CREW_IMG_PATH + "/" + originalImgFileName);
+            Path savePath = Paths.get(CREW_IMG_PATH + "/" + fileName);
             trasferFile(crewImgFile, savePath);
 
             return fileName;
