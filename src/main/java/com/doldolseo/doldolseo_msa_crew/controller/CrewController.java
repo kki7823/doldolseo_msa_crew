@@ -1,6 +1,8 @@
 package com.doldolseo.doldolseo_msa_crew.controller;
 
+import com.doldolseo.doldolseo_msa_crew.dto.CrewAndCrewMemberDTO;
 import com.doldolseo.doldolseo_msa_crew.dto.CrewDTO;
+import com.doldolseo.doldolseo_msa_crew.dto.CrewMemberDTO;
 import com.doldolseo.doldolseo_msa_crew.dto.CrewPageDTO;
 import com.doldolseo.doldolseo_msa_crew.service.CrewService;
 import org.apache.commons.io.IOUtils;
@@ -21,30 +23,43 @@ import java.io.InputStream;
 @RestController
 public class CrewController {
     @Autowired
-    CrewService crewService;
+    CrewService service;
 
     @GetMapping(value = "/crew")
     public ResponseEntity<CrewPageDTO> getCrewList(@PageableDefault(size = 30, sort = "crewName", direction = Sort.Direction.DESC) Pageable pageable) throws Exception {
-        return ResponseEntity.status(HttpStatus.OK).body(crewService.getCrewList(pageable));
+        return ResponseEntity.status(HttpStatus.OK).body(service.getCrewList(pageable));
     }
 
     @GetMapping(value = "/crew/{crewNo}")
-    public ResponseEntity<CrewDTO> getCrewList(@PathVariable Long crewNo) throws Exception {
-        return ResponseEntity.status(HttpStatus.OK).body(crewService.getCrew(crewNo));
+    public ResponseEntity<CrewAndCrewMemberDTO> getCrew(@PathVariable Long crewNo) throws Exception {
+        return ResponseEntity.status(HttpStatus.OK).body(service.getCrew(crewNo));
+    }
+
+    @GetMapping(value = "/crew/manage/{crewLeader}")
+    public ResponseEntity<CrewAndCrewMemberDTO> getCrew(@PathVariable String crewLeader) throws Exception {
+        return ResponseEntity.status(HttpStatus.OK).body(service.getCrew(crewLeader));
     }
 
     @PostMapping(value = "/crew")
     public ResponseEntity<CrewDTO> crewCreate(CrewDTO dtoIn,
                                               @RequestParam(required = false) MultipartFile imageFile) throws Exception {
         System.out.println(dtoIn.toString()); //temp
-        CrewDTO dtoOut = crewService.createCrew(dtoIn, imageFile);
+        CrewDTO dtoOut = service.createCrew(dtoIn, imageFile);
 
         return ResponseEntity.status(HttpStatus.OK).body(dtoOut);
     }
 
+    @PutMapping(value = "/crew/{crewNo}")
+    public ResponseEntity<String> updateCrew(@RequestBody CrewDTO dto,
+                                             @PathVariable(value = "crewNo") Long crewNo) throws Exception {
+        System.out.println(dto.toString());
+        service.updateCrew(dto, crewNo);
+        return ResponseEntity.status(HttpStatus.OK).body("수정 완료");
+    }
+
     @GetMapping(value = "/crew/check/{crewName}")
     public ResponseEntity<Boolean> crewNameCheck(@PathVariable String crewName) throws Exception {
-        Boolean result = crewService.checkCrewName(crewName);
+        Boolean result = service.checkCrewName(crewName);
 
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
@@ -59,5 +74,12 @@ public class CrewController {
         byte[] imageByteArr = IOUtils.toByteArray(in);
         in.close();
         return imageByteArr;
+    }
+
+    @PostMapping(value = "/crew/{crewNo}/member")
+    public ResponseEntity<CrewMemberDTO> joinCrew(@RequestBody CrewMemberDTO dtoIn,
+                                                  @PathVariable(value = "crewNo") Long crewNo) throws Exception {
+        CrewMemberDTO dtoOut = service.createCrewMember(dtoIn);
+        return ResponseEntity.status(HttpStatus.OK).body(dtoOut);
     }
 }

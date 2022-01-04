@@ -1,8 +1,12 @@
 package com.doldolseo.doldolseo_msa_crew.service;
 
 import com.doldolseo.doldolseo_msa_crew.domain.Crew;
+import com.doldolseo.doldolseo_msa_crew.domain.CrewMember;
+import com.doldolseo.doldolseo_msa_crew.dto.CrewAndCrewMemberDTO;
 import com.doldolseo.doldolseo_msa_crew.dto.CrewDTO;
+import com.doldolseo.doldolseo_msa_crew.dto.CrewMemberDTO;
 import com.doldolseo.doldolseo_msa_crew.dto.CrewPageDTO;
+import com.doldolseo.doldolseo_msa_crew.repository.CrewMemberReopsitory;
 import com.doldolseo.doldolseo_msa_crew.repository.CrewRepository;
 import com.doldolseo.doldolseo_msa_crew.utils.PagingParams;
 import com.doldolseo.doldolseo_msa_crew.utils.UploadCrewFileUtil;
@@ -12,14 +16,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class CrewServiceImpl implements CrewService {
     @Autowired
-    CrewRepository repository;
+    CrewRepository crewRepository;
+    @Autowired
+    CrewMemberReopsitory crewMemberReopsitory;
     @Autowired
     UploadCrewFileUtil fileUtil;
     @Autowired
@@ -27,7 +35,7 @@ public class CrewServiceImpl implements CrewService {
 
     @Override
     public CrewPageDTO getCrewList(Pageable pageable) {
-        Page<CrewDTO> crewPage = entityPageToDtoPage(repository.findAll(pageable));
+        Page<CrewDTO> crewPage = entityPageToDtoPage(crewRepository.findAll(pageable));
         PagingParams pagingParams = new PagingParams(5, crewPage);
 
         CrewPageDTO crewPageDTO = new CrewPageDTO();
@@ -41,7 +49,34 @@ public class CrewServiceImpl implements CrewService {
 
     @Override
     public boolean checkCrewName(String crewName) {
-        return repository.existsByCrewName(crewName);
+        return crewRepository.existsByCrewName(crewName);
+    }
+
+    @Override
+    public CrewAndCrewMemberDTO getCrew(Long crewNo) {
+        Crew crew = crewRepository.findByCrewNo(crewNo);
+        List<CrewMember> crewMember = crewMemberReopsitory.findAllByCrew_CrewNoAndCrewMemberState(crewNo, "JOINED");
+
+        CrewAndCrewMemberDTO dto = new CrewAndCrewMemberDTO();
+        dto.setCrewDTO(entityToDto(crew));
+        dto.setCrewMemberDTO_Joined(entityListToDtoList(crewMember));
+        dto.setCrewMemberDTO_Wating(null);
+
+        return dto;
+    }
+
+    @Override
+    public CrewAndCrewMemberDTO getCrew(String crewLeader) {
+        Crew crew = crewRepository.findByCrewLeader(crewLeader);
+        List<CrewMember> crewMemberJoined = crewMemberReopsitory.findAllByCrew_CrewLeaderAndCrewMemberState(crewLeader, "JOINED");
+        List<CrewMember> crewMemberWating = crewMemberReopsitory.findAllByCrew_CrewLeaderAndCrewMemberState(crewLeader, "WATING");
+
+        CrewAndCrewMemberDTO dto = new CrewAndCrewMemberDTO();
+        dto.setCrewDTO(entityToDto(crew));
+        dto.setCrewMemberDTO_Joined(entityListToDtoList(crewMemberJoined));
+        dto.setCrewMemberDTO_Wating(entityListToDtoList(crewMemberWating));
+
+        return dto;
     }
 
     @Override
@@ -56,30 +91,54 @@ public class CrewServiceImpl implements CrewService {
         dto.setCDate(LocalDateTime.now());
         dto.setCrewPoint(0);
 
-        Crew crew = repository.save(dtoToEntity(dto));
+        Crew crew = crewRepository.save((Crew) dtoToEntity(dto));
         return entityToDto(crew);
     }
 
     @Override
-    public CrewDTO getCrew(Long crewNo) {
-        return entityToDto(repository.findByCrewNo(crewNo));
+    @Transactional
+    public void updateCrew(CrewDTO dto, Long crewNo) {
+        Crew crew = crewRepository.findByCrewNo(crewNo);
+        crew.setAreaNoFirst(dto.getAreaNoFirst());
+        crew.setAreaNoSecond(dto.getAreaNoSecond());
+        crew.setAreaNoThird(dto.getAreaNoThird());
+        crew.setIntro(dto.getIntro());
+        crew.setIntroDetail(dto.getIntroDetail());
+        crew.setRecruit(dto.getRecruit());
     }
 
     @Override
-    public void updateCrew(CrewDTO dto, String action) {
+    public CrewMemberDTO createCrewMember(CrewMemberDTO dtoIn) {
+        dtoIn.setCrewMemberState("WATING");
+        dtoIn.setJDate(LocalDateTime.now());
 
+        CrewMember crewMember = crewMemberReopsitory.save((CrewMember) dtoToEntity(dtoIn));
+        return entityToDto(crewMember);
     }
 
-    public Crew dtoToEntity(CrewDTO dto) {
+    public Object dtoToEntity(CrewDTO dto) {
         return modelMapper.map(dto, Crew.class);
+    }
+
+    public Object dtoToEntity(CrewMemberDTO dto) {
+        return modelMapper.map(dto, CrewMember.class);
     }
 
     public CrewDTO entityToDto(Crew crew) {
         return modelMapper.map(crew, CrewDTO.class);
     }
 
+    public CrewMemberDTO entityToDto(CrewMember crewMember) {
+        return modelMapper.map(crewMember, CrewMemberDTO.class);
+    }
+
     public Page<CrewDTO> entityPageToDtoPage(Page<Crew> crewPage) {
         return modelMapper.map(crewPage, new TypeToken<Page<CrewDTO>>() {
+        }.getType());
+    }
+
+    public List<CrewMemberDTO> entityListToDtoList(List<CrewMember> crewMemberList) {
+        return modelMapper.map(crewMemberList, new TypeToken<List<CrewMemberDTO>>() {
         }.getType());
     }
 }
