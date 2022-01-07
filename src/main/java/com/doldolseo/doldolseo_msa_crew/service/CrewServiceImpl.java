@@ -96,7 +96,7 @@ public class CrewServiceImpl implements CrewService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateCrew(CrewDTO dto, Long crewNo) {
         Crew crew = crewRepository.findByCrewNo(crewNo);
         crew.setAreaNoFirst(dto.getAreaNoFirst());
@@ -108,12 +108,59 @@ public class CrewServiceImpl implements CrewService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateCrew_Question(CrewDTO dto, Long crewNo) {
+        Crew crew = crewRepository.findByCrewNo(crewNo);
+        crew.setQuestionFirst(dto.getQuestionFirst());
+        if (dto.getQuestionSecond() != null) {
+            crew.setQuestionSecond(dto.getQuestionSecond());
+        }
+        if (dto.getQuestionThird() != null) {
+            crew.setQuestionThird(dto.getQuestionThird());
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String updateCrew_Image(MultipartFile imageFile, Long crewNo) {
+        Crew crew = crewRepository.findByCrewNo(crewNo);
+
+        String crewImageName = "default_member.png";
+        if (imageFile != null) {
+            if (!imageFile.isEmpty()) {
+                crewImageName = fileUtil.saveCrewImg(crew.getCrewName(), imageFile);
+            }
+        }
+        crew.setCrewImage(crewImageName);
+        return crew.getCrewImage();
+    }
+
+    @Override
+    public CrewMemberDTO getCrewMember(Long crewMemberNo) {
+        return entityToDto(crewMemberReopsitory.getById(crewMemberNo));
+    }
+
+    @Override
     public CrewMemberDTO createCrewMember(CrewMemberDTO dtoIn) {
         dtoIn.setCrewMemberState("WATING");
         dtoIn.setJDate(LocalDateTime.now());
 
         CrewMember crewMember = crewMemberReopsitory.save((CrewMember) dtoToEntity(dtoIn));
         return entityToDto(crewMember);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateCrewMember(Long crewMemberNo) {
+        CrewMember crewMember = crewMemberReopsitory.getById(crewMemberNo);
+        if (crewMember.getCrewMemberState().equals("WATING")) {
+            crewMember.setCrewMemberState("JOINED");
+        }
+    }
+
+    @Override
+    public void deleteCrewMember(Long crewMemberNo) {
+        crewMemberReopsitory.deleteById(crewMemberNo);
     }
 
     public Object dtoToEntity(CrewDTO dto) {

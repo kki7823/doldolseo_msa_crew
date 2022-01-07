@@ -21,5 +21,15 @@ public interface CrewService {
 
     void updateCrew(CrewDTO dto, Long crewNo);
 
+    String updateCrew_Image(MultipartFile imageFile, Long crewNo);
+
+    void updateCrew_Question(CrewDTO dto, Long crewNo);
+
+    CrewMemberDTO getCrewMember(Long crewMemberNo);
+
     CrewMemberDTO createCrewMember(CrewMemberDTO dtoIn);
+
+    void updateCrewMember(Long crewMemberNo);
+
+    void deleteCrewMember(Long crewMemberNo);
 }

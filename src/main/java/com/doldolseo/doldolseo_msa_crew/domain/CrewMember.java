@@ -14,6 +14,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CrewMember {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "CREW_MEMBER_NO")
+    private Long crewMemberNo;
+
     @Column(name = "CREW_MEMBER_ID")
     private String crewMemberId;
 

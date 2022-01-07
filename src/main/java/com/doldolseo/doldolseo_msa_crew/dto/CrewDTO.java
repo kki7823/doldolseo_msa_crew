@@ -1,11 +1,9 @@
 package com.doldolseo.doldolseo_msa_crew.dto;
 
-import com.doldolseo.doldolseo_msa_crew.domain.CrewMember;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter

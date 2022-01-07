@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface CrewMemberReopsitory extends JpaRepository<CrewMember, String> {
+public interface CrewMemberReopsitory extends JpaRepository<CrewMember, Long> {
     List<CrewMember> findAllByCrew_CrewNoAndCrewMemberState(Long crew_crewNo, String state);
     List<CrewMember> findAllByCrew_CrewLeaderAndCrewMemberState(String crew_crewLeader, String state);
 }

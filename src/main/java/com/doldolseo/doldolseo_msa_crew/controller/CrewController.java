@@ -57,6 +57,19 @@ public class CrewController {
         return ResponseEntity.status(HttpStatus.OK).body("수정 완료");
     }
 
+    @PutMapping(value = "/crew/{crewNo}/question")
+    public ResponseEntity<String> updateCrew_Question(@RequestBody CrewDTO dto,
+                                                      @PathVariable(value = "crewNo") Long crewNo) throws Exception {
+        service.updateCrew_Question(dto, crewNo);
+        return ResponseEntity.status(HttpStatus.OK).body("수정 완료");
+    }
+
+    @PutMapping(value = "/crew/{crewNo}/images")
+    public ResponseEntity<String> updateCrewImage(@RequestParam MultipartFile imageFile,
+                                                  @PathVariable(value = "crewNo") Long crewNo) throws Exception {
+        return ResponseEntity.status(HttpStatus.OK).body(service.updateCrew_Image(imageFile, crewNo));
+    }
+
     @GetMapping(value = "/crew/check/{crewName}")
     public ResponseEntity<Boolean> crewNameCheck(@PathVariable String crewName) throws Exception {
         Boolean result = service.checkCrewName(crewName);
@@ -76,10 +89,29 @@ public class CrewController {
         return imageByteArr;
     }
 
+    @GetMapping(value = "/crew/member/{crewMemberNo}")
+    public ResponseEntity<CrewMemberDTO> getCrewMember(@PathVariable(value = "crewMemberNo") Long crewMemberNo) throws Exception {
+        return ResponseEntity.status(HttpStatus.OK).body(service.getCrewMember(crewMemberNo));
+    }
+
     @PostMapping(value = "/crew/{crewNo}/member")
     public ResponseEntity<CrewMemberDTO> joinCrew(@RequestBody CrewMemberDTO dtoIn,
                                                   @PathVariable(value = "crewNo") Long crewNo) throws Exception {
         CrewMemberDTO dtoOut = service.createCrewMember(dtoIn);
         return ResponseEntity.status(HttpStatus.OK).body(dtoOut);
+    }
+
+    @PutMapping(value = "/crew/{crewNo}/member/{crewMemberNo}")
+    public ResponseEntity<String> updateCrewMemberState(@PathVariable(value = "crewNo") Long crewNo,
+                                                        @PathVariable(value = "crewMemberNo") Long crewMemberNo) throws Exception {
+        service.updateCrewMember(crewMemberNo);
+        return ResponseEntity.status(HttpStatus.OK).body("success");
+    }
+
+    @DeleteMapping(value = "/crew/{crewNo}/member/{crewMemberNo}")
+    public ResponseEntity<String> deleteCrewMember(@PathVariable(value = "crewNo") Long crewNo,
+                                                   @PathVariable(value = "crewMemberNo") Long crewMemberNo) throws Exception {
+        service.deleteCrewMember(crewMemberNo);
+        return ResponseEntity.status(HttpStatus.OK).body("success");
     }
 }
