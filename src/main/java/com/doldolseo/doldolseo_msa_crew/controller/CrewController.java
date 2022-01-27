@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 @RestController
 public class CrewController {
@@ -27,7 +28,12 @@ public class CrewController {
 
     @GetMapping(value = "/crew")
     public ResponseEntity<CrewPageDTO> getCrewList(@PageableDefault(size = 30, sort = "crewName", direction = Sort.Direction.DESC) Pageable pageable) throws Exception {
-        return ResponseEntity.status(HttpStatus.OK).body(service.getCrewList(pageable));
+        return ResponseEntity.status(HttpStatus.OK).body(service.getCrewPage(pageable));
+    }
+
+    @GetMapping(value = "/crew/members/{crewMemberId}")
+    public ResponseEntity<List<CrewDTO>> getCrewListByMember(@PathVariable(value = "crewMemberId") String crewMemberId) throws Exception {
+        return ResponseEntity.status(HttpStatus.OK).body(service.getCrewList(crewMemberId));
     }
 
     @GetMapping(value = "/crew/{crewNo}")
@@ -36,7 +42,7 @@ public class CrewController {
     }
 
     @GetMapping(value = "/crew/manage/{crewLeader}")
-    public ResponseEntity<CrewAndCrewMemberDTO> getCrew(@PathVariable String crewLeader) throws Exception {
+    public ResponseEntity<CrewAndCrewMemberDTO> getCrewManagement(@PathVariable String crewLeader) throws Exception {
         return ResponseEntity.status(HttpStatus.OK).body(service.getCrew(crewLeader));
     }
 
@@ -92,6 +98,11 @@ public class CrewController {
     @GetMapping(value = "/crew/member/{crewMemberNo}")
     public ResponseEntity<CrewMemberDTO> getCrewMember(@PathVariable(value = "crewMemberNo") Long crewMemberNo) throws Exception {
         return ResponseEntity.status(HttpStatus.OK).body(service.getCrewMember(crewMemberNo));
+    }
+
+    @GetMapping(value = "/crew/{crewNo}/members")
+    public ResponseEntity<List<CrewMemberDTO>> getCrewMembers(@PathVariable(value = "crewNo") Long crewNo) throws Exception {
+        return ResponseEntity.status(HttpStatus.OK).body(service.getCrewMemberList(crewNo));
     }
 
     @PostMapping(value = "/crew/{crewNo}/member")

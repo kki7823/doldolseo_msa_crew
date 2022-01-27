@@ -4,12 +4,15 @@ import com.doldolseo.doldolseo_msa_crew.dto.CrewAndCrewMemberDTO;
 import com.doldolseo.doldolseo_msa_crew.dto.CrewDTO;
 import com.doldolseo.doldolseo_msa_crew.dto.CrewMemberDTO;
 import com.doldolseo.doldolseo_msa_crew.dto.CrewPageDTO;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 public interface CrewService {
-    CrewPageDTO getCrewList(Pageable pageable);
+    CrewPageDTO getCrewPage(Pageable pageable);
+
+    List<CrewDTO> getCrewList(String crewMemberId);
 
     boolean checkCrewName(String crewName);
 
@@ -26,6 +29,8 @@ public interface CrewService {
     void updateCrew_Question(CrewDTO dto, Long crewNo);
 
     CrewMemberDTO getCrewMember(Long crewMemberNo);
+
+    List<CrewMemberDTO> getCrewMemberList(Long crewrNo);
 
     CrewMemberDTO createCrewMember(CrewMemberDTO dtoIn);
 

@@ -34,7 +34,7 @@ public class CrewServiceImpl implements CrewService {
     ModelMapper modelMapper;
 
     @Override
-    public CrewPageDTO getCrewList(Pageable pageable) {
+    public CrewPageDTO getCrewPage(Pageable pageable) {
         Page<CrewDTO> crewPage = entityPageToDtoPage(crewRepository.findAll(pageable));
         PagingParams pagingParams = new PagingParams(5, crewPage);
 
@@ -45,6 +45,11 @@ public class CrewServiceImpl implements CrewService {
         crewPageDTO.setTotalPages(pagingParams.getTotalPages());
 
         return crewPageDTO;
+    }
+
+    @Override
+    public List<CrewDTO> getCrewList(String crewMemberId) {
+        return entityListToDtoList_Obj(crewMemberReopsitory.findCrewByCrewMemberId(crewMemberId));
     }
 
     @Override
@@ -59,7 +64,7 @@ public class CrewServiceImpl implements CrewService {
 
         CrewAndCrewMemberDTO dto = new CrewAndCrewMemberDTO();
         dto.setCrewDTO(entityToDto(crew));
-        dto.setCrewMemberDTO_Joined(entityListToDtoList(crewMember));
+        dto.setCrewMemberDTO_Joined(entityListToDtoList_CrewMember(crewMember));
         dto.setCrewMemberDTO_Wating(null);
 
         return dto;
@@ -73,8 +78,8 @@ public class CrewServiceImpl implements CrewService {
 
         CrewAndCrewMemberDTO dto = new CrewAndCrewMemberDTO();
         dto.setCrewDTO(entityToDto(crew));
-        dto.setCrewMemberDTO_Joined(entityListToDtoList(crewMemberJoined));
-        dto.setCrewMemberDTO_Wating(entityListToDtoList(crewMemberWating));
+        dto.setCrewMemberDTO_Joined(entityListToDtoList_CrewMember(crewMemberJoined));
+        dto.setCrewMemberDTO_Wating(entityListToDtoList_CrewMember(crewMemberWating));
 
         return dto;
     }
@@ -141,6 +146,12 @@ public class CrewServiceImpl implements CrewService {
     }
 
     @Override
+    public List<CrewMemberDTO> getCrewMemberList(Long crewNo) {
+        return entityListToDtoList_CrewMember(crewMemberReopsitory
+                .findAllByCrew_CrewNoAndCrewMemberState(crewNo, "JOINED"));
+    }
+
+    @Override
     public CrewMemberDTO createCrewMember(CrewMemberDTO dtoIn) {
         dtoIn.setCrewMemberState("WATING");
         dtoIn.setJDate(LocalDateTime.now());
@@ -184,7 +195,17 @@ public class CrewServiceImpl implements CrewService {
         }.getType());
     }
 
-    public List<CrewMemberDTO> entityListToDtoList(List<CrewMember> crewMemberList) {
+    public List<CrewDTO> entityListToDtoList_Obj(List<Object> objectList) {
+        return modelMapper.map(objectList, new TypeToken<List<CrewDTO>>() {
+        }.getType());
+    }
+
+    public List<CrewDTO> entityListToDtoList_Crew(List<Crew> crewList) {
+        return modelMapper.map(crewList, new TypeToken<List<CrewDTO>>() {
+        }.getType());
+    }
+
+    public List<CrewMemberDTO> entityListToDtoList_CrewMember(List<CrewMember> crewMemberList) {
         return modelMapper.map(crewMemberList, new TypeToken<List<CrewMemberDTO>>() {
         }.getType());
     }
