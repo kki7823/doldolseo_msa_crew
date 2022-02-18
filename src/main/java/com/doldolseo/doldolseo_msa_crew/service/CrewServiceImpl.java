@@ -2,6 +2,7 @@ package com.doldolseo.doldolseo_msa_crew.service;
 
 import com.doldolseo.doldolseo_msa_crew.domain.Crew;
 import com.doldolseo.doldolseo_msa_crew.domain.CrewMember;
+import com.doldolseo.doldolseo_msa_crew.domain.CrewMemberId;
 import com.doldolseo.doldolseo_msa_crew.dto.CrewAndCrewMemberDTO;
 import com.doldolseo.doldolseo_msa_crew.dto.CrewDTO;
 import com.doldolseo.doldolseo_msa_crew.dto.CrewMemberDTO;
@@ -9,6 +10,7 @@ import com.doldolseo.doldolseo_msa_crew.dto.CrewPageDTO;
 import com.doldolseo.doldolseo_msa_crew.repository.CrewMemberReopsitory;
 import com.doldolseo.doldolseo_msa_crew.repository.CrewRepository;
 import com.doldolseo.doldolseo_msa_crew.utils.PagingParams;
+import com.doldolseo.doldolseo_msa_crew.utils.OtherRestUtil;
 import com.doldolseo.doldolseo_msa_crew.utils.UploadCrewFileUtil;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -32,12 +34,19 @@ public class CrewServiceImpl implements CrewService {
     UploadCrewFileUtil fileUtil;
     @Autowired
     ModelMapper modelMapper;
+    @Autowired
+    OtherRestUtil restUtil;
 
+    /* Crew */
     @Override
-    public CrewPageDTO getCrewPage(Pageable pageable) {
-        Page<CrewDTO> crewPage = entityPageToDtoPage(crewRepository.findAll(pageable));
-        PagingParams pagingParams = new PagingParams(5, crewPage);
+    public CrewPageDTO getCrewPage(Pageable pageable, String memberId) {
+        Page<CrewDTO> crewPage;
+        if (memberId == null)
+            crewPage = entityPageToDtoPage(crewRepository.findAll(pageable));
+        else
+            crewPage = entityPageToDtoPage_Obj(crewRepository.findAllByMemberId(pageable, memberId));
 
+        PagingParams pagingParams = new PagingParams(5, crewPage);
         CrewPageDTO crewPageDTO = new CrewPageDTO();
         crewPageDTO.setCrewList(crewPage.getContent());
         crewPageDTO.setEndBlockPage(pagingParams.getStartBlockPage());
@@ -49,7 +58,7 @@ public class CrewServiceImpl implements CrewService {
 
     @Override
     public List<CrewDTO> getCrewList(String crewMemberId) {
-        return entityListToDtoList_Obj(crewMemberReopsitory.findCrewByCrewMemberId(crewMemberId));
+        return entityListToDtoList_Obj(crewMemberReopsitory.findCrewByMemberId(crewMemberId));
     }
 
     @Override
@@ -73,8 +82,11 @@ public class CrewServiceImpl implements CrewService {
     @Override
     public CrewAndCrewMemberDTO getCrew(String crewLeader) {
         Crew crew = crewRepository.findByCrewLeader(crewLeader);
-        List<CrewMember> crewMemberJoined = crewMemberReopsitory.findAllByCrew_CrewLeaderAndCrewMemberState(crewLeader, "JOINED");
-        List<CrewMember> crewMemberWating = crewMemberReopsitory.findAllByCrew_CrewLeaderAndCrewMemberState(crewLeader, "WATING");
+
+        List<CrewMember> crewMemberJoined =
+                crewMemberReopsitory.findAllByCrew_CrewLeaderAndCrewMemberState(crewLeader, "JOINED");
+        List<CrewMember> crewMemberWating =
+                crewMemberReopsitory.findAllByCrew_CrewLeaderAndCrewMemberState(crewLeader, "WATING");
 
         CrewAndCrewMemberDTO dto = new CrewAndCrewMemberDTO();
         dto.setCrewDTO(entityToDto(crew));
@@ -84,8 +96,16 @@ public class CrewServiceImpl implements CrewService {
         return dto;
     }
 
+    /*
+    - 크루 생성
+    - 멤버 권한 변경 (USER -> CREWLEADER)
+    */
     @Override
-    public CrewDTO createCrew(CrewDTO dto, MultipartFile imageFile) {
+    @Transactional(rollbackFor = Exception.class)
+    public void createCrew(CrewDTO dto,
+                           MultipartFile imageFile,
+                           String authHeader,
+                           String userId) {
         String crewImageName = "default_member.png";
         if (imageFile != null) {
             if (!imageFile.isEmpty()) {
@@ -95,9 +115,13 @@ public class CrewServiceImpl implements CrewService {
         dto.setCrewImage(crewImageName);
         dto.setCDate(LocalDateTime.now());
         dto.setCrewPoint(0);
+        dto.setCrewLeader(userId);
 
-        Crew crew = crewRepository.save((Crew) dtoToEntity(dto));
-        return entityToDto(crew);
+        crewRepository.save((Crew) dtoToEntity(dto));
+
+        String updateMemberUri
+                = "http://doldolseo-member-rest.default.svc.cluster.local:8080/doldolseo/member/role";
+        restUtil.member_UpdateRole(updateMemberUri, authHeader, userId, "CREATE"); //변경된 권한
     }
 
     @Override
@@ -140,17 +164,7 @@ public class CrewServiceImpl implements CrewService {
         return crew.getCrewImage();
     }
 
-    @Override
-    public CrewMemberDTO getCrewMember(Long crewMemberNo) {
-        return entityToDto(crewMemberReopsitory.getById(crewMemberNo));
-    }
-
-    @Override
-    public List<CrewMemberDTO> getCrewMemberList(Long crewNo) {
-        return entityListToDtoList_CrewMember(crewMemberReopsitory
-                .findAllByCrew_CrewNoAndCrewMemberState(crewNo, "JOINED"));
-    }
-
+    /* CrewMember */
     @Override
     public CrewMemberDTO createCrewMember(CrewMemberDTO dtoIn) {
         dtoIn.setCrewMemberState("WATING");
@@ -161,19 +175,60 @@ public class CrewServiceImpl implements CrewService {
     }
 
     @Override
+    public CrewMemberDTO getCrewMember(CrewMemberId crewMemberId) {
+        return entityToDto(crewMemberReopsitory.getById(crewMemberId));
+    }
+
+    @Override
+    public List<CrewMemberDTO> getCrewMemberList(Long crewNo) {
+        return entityListToDtoList_CrewMember(crewMemberReopsitory
+                .findAllByCrew_CrewNoAndCrewMemberState(crewNo, "JOINED"));
+    }
+
+    @Override
+    public Boolean areYouCrewMember(Long crewNo, String memberId) {
+        return crewMemberReopsitory
+                .existsByCrewCrewNoAndMemberIdAndCrewMemberState(crewNo, memberId, "JOINED");
+    }
+
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateCrewMember(Long crewMemberNo) {
-        CrewMember crewMember = crewMemberReopsitory.getById(crewMemberNo);
+    public void updateCrewMember(CrewMemberId crewMemberId) {
+        CrewMember crewMember = crewMemberReopsitory.getById(crewMemberId);
         if (crewMember.getCrewMemberState().equals("WATING")) {
             crewMember.setCrewMemberState("JOINED");
+        }
+
+    }
+
+    @Override
+    public void deleteCrewMember(CrewMemberId crewMemberId) {
+        crewMemberReopsitory.deleteById(crewMemberId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateCrewLeader(String userId, String idToDelegate, String authHeader) {
+        Crew crew = crewRepository.findByCrewLeader(userId);
+        if (crew.getCrewLeader().equals(userId)) {
+            crew.setCrewLeader(idToDelegate);
+
+            String updateMemberUri
+                    = "http://doldolseo-member-rest.default.svc.cluster.local:8080/doldolseo/member/role";
+            restUtil.member_UpdateRole(updateMemberUri, authHeader, idToDelegate, "PROMOTION");
+            restUtil.member_UpdateRole(updateMemberUri, authHeader, userId, "DEMOTION");
+        } else {
+            System.out.println("This user is not leader of " + crew.getCrewName());
         }
     }
 
     @Override
-    public void deleteCrewMember(Long crewMemberNo) {
-        crewMemberReopsitory.deleteById(crewMemberNo);
+    public boolean isThisUserCrewLeader(String id) {
+        return crewRepository.existsByCrewLeader(id);
     }
 
+    /* Utils */
     public Object dtoToEntity(CrewDTO dto) {
         return modelMapper.map(dto, Crew.class);
     }
@@ -192,6 +247,11 @@ public class CrewServiceImpl implements CrewService {
 
     public Page<CrewDTO> entityPageToDtoPage(Page<Crew> crewPage) {
         return modelMapper.map(crewPage, new TypeToken<Page<CrewDTO>>() {
+        }.getType());
+    }
+
+    public Page<CrewDTO> entityPageToDtoPage_Obj(Page<Object> objectPage) {
+        return modelMapper.map(objectPage, new TypeToken<Page<CrewDTO>>() {
         }.getType());
     }
 

@@ -1,8 +1,6 @@
 package com.doldolseo.doldolseo_msa_crew.utils;
 
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 

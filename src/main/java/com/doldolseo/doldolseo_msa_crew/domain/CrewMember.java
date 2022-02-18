@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,14 +13,17 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CrewMember {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "CREW_MEMBER_NO")
-    private Long crewMemberNo;
+@IdClass(CrewMemberId.class)
+public class CrewMember implements Serializable {
 
-    @Column(name = "CREW_MEMBER_ID")
-    private String crewMemberId;
+    @Id
+    @ManyToOne
+    @JoinColumn(name = "CREW_NO")
+    private Crew crew;
+
+    @Id
+    @Column(name = "MEMBER_ID")
+    private String memberId;
 
     @Column(name = "CREW_MEMBER_STATE")
     private String crewMemberState;
@@ -36,7 +40,5 @@ public class CrewMember {
     @Column(name = "J_DATE")
     private LocalDateTime jDate;
 
-    @ManyToOne
-    @JoinColumn(name = "CREW_NO")
-    private Crew crew;
+
 }

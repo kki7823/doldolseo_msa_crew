@@ -1,5 +1,6 @@
 package com.doldolseo.doldolseo_msa_crew.configuration;
 
+import com.doldolseo.doldolseo_msa_crew.utils.AuthorityUtil;
 import com.doldolseo.doldolseo_msa_crew.utils.UploadCrewFileUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
@@ -35,5 +36,10 @@ public class CrewConfiguration {
     @Bean
     public HiddenHttpMethodFilter httpMethodFilter() {
         return new HiddenHttpMethodFilter();
+    }
+
+    @Bean
+    public AuthorityUtil checkAuthority(){
+        return new AuthorityUtil();
     }
 }

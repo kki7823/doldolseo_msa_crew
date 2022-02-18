@@ -12,9 +12,8 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 public class CrewMemberDTO {
-    private Long crewMemberNo;
-    private String crewMemberId;
     private Crew crew;
+    private String memberId;
     private String crewMemberState;
     private String answerFirst;
     private String answerSecond;

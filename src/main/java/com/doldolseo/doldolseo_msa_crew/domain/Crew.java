@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Crew {
+public class Crew{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "CREW_NO")
