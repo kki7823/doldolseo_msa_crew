@@ -27,6 +27,8 @@ public interface CrewService {
 
     String updateCrew_Image(MultipartFile imageFile, Long crewNo);
 
+    void deleteCrew(Long crewNo, String authHeader, String userId);
+
     void updateCrewMember(CrewMemberId crewMemberId);
 
     CrewMemberDTO getCrewMember(CrewMemberId crewMemberId);
@@ -34,6 +36,8 @@ public interface CrewService {
     List<CrewMemberDTO> getCrewMemberList(Long crewrNo);
 
     Boolean areYouCrewMember(Long crewNo, String memberId);
+
+    Integer howManyJoined(String memberId);
 
     CrewMemberDTO createCrewMember(CrewMemberDTO dtoIn);
 

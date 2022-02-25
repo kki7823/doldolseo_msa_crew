@@ -18,4 +18,6 @@ public interface CrewMemberReopsitory extends JpaRepository<CrewMember, CrewMemb
     List<Object> findCrewByMemberId(String memberId);
 
     Boolean existsByCrewCrewNoAndMemberIdAndCrewMemberState(Long crewNo, String memberId, String state);
+
+    int countCrewMemberByMemberId(String memberId);
 }

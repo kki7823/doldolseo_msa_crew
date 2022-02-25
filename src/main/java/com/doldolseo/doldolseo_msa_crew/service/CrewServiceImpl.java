@@ -164,6 +164,25 @@ public class CrewServiceImpl implements CrewService {
         return crew.getCrewImage();
     }
 
+    /*
+        크루 삭제
+        - 크루및 크루원 삭제
+        - 크루게시글 서비스 : 해당 크루게시글 삭제
+        - 회원 서비스 : CREWLEADER -> USER 강등
+        ** 추후 분산 트랜잭션 처리 필요
+    */
+    @Override
+    public void deleteCrew(Long crewNo, String authHeader, String userId) {
+        String deleteCrewPostUri
+                = "http://doldolseo-crew-post-rest.default.svc.cluster.local:8080/doldolseo/crew/post/all/" + crewNo;
+        restUtil.crewPost_DeletePost(deleteCrewPostUri);
+
+        String updateMemberUri
+                = "http://doldolseo-member-rest.default.svc.cluster.local:8080/doldolseo/member/role";
+        restUtil.member_UpdateRole(updateMemberUri, authHeader, userId, "DEMOTION");
+        crewRepository.deleteById(crewNo);
+    }
+
     /* CrewMember */
     @Override
     public CrewMemberDTO createCrewMember(CrewMemberDTO dtoIn) {
@@ -186,11 +205,16 @@ public class CrewServiceImpl implements CrewService {
     }
 
     @Override
+    public Integer howManyJoined(String memberId) {
+        return crewMemberReopsitory
+                .countCrewMemberByMemberId(memberId);
+    }
+
+    @Override
     public Boolean areYouCrewMember(Long crewNo, String memberId) {
         return crewMemberReopsitory
                 .existsByCrewCrewNoAndMemberIdAndCrewMemberState(crewNo, memberId, "JOINED");
     }
-
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -199,11 +223,13 @@ public class CrewServiceImpl implements CrewService {
         if (crewMember.getCrewMemberState().equals("WATING")) {
             crewMember.setCrewMemberState("JOINED");
         }
-
     }
 
     @Override
     public void deleteCrewMember(CrewMemberId crewMemberId) {
+        String deleteCrewPostUri
+                = "http://doldolseo-crew-post-rest.default.svc.cluster.local:8080/doldolseo/crew/post/member" + crewMemberId.getMemberId();
+        restUtil.crewPost_DeletePost(deleteCrewPostUri);
         crewMemberReopsitory.deleteById(crewMemberId);
     }
 

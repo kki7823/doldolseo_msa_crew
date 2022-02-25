@@ -61,6 +61,13 @@ public class CrewController {
         }
     }
 
+    @GetMapping(value = "/crew/check/{crewName}")
+    public ResponseEntity<Boolean> crewNameCheck(@PathVariable String crewName) throws Exception {
+        Boolean result = service.checkCrewName(crewName);
+
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
     @PostMapping(value = "/crew")
     public ResponseEntity<?> crewCreate(CrewDTO dtoIn,
                                         @RequestParam(required = false) MultipartFile imageFile,
@@ -114,11 +121,19 @@ public class CrewController {
         }
     }
 
-    @GetMapping(value = "/crew/check/{crewName}")
-    public ResponseEntity<Boolean> crewNameCheck(@PathVariable String crewName) throws Exception {
-        Boolean result = service.checkCrewName(crewName);
-
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+    @DeleteMapping(value = "/crew/{crewNo}")
+    public ResponseEntity<?> deleteCrew(@PathVariable Long crewNo,
+                                        @RequestHeader String role,
+                                        @RequestHeader String userId,
+                                        HttpServletRequest request) {
+        if (authorityUtil.areYouCrewLeader(role)) {
+            String authHeader = request.getHeader("Authorization");
+            service.deleteCrew(crewNo, userId, authHeader);
+            return ResponseEntity.status(HttpStatus.OK).body("크루가 폐쇄 되었습니다.");
+        } else {
+            System.out.println("[Error] 권한 없음");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization Fail");
+        }
     }
 
     @ResponseBody
@@ -153,10 +168,15 @@ public class CrewController {
     }
 
     @GetMapping(value = "/crew/member/check")
-    public ResponseEntity<?> checkCrewMember(@RequestParam Long crewNo,
-                                             @RequestHeader String userId) {
+    public ResponseEntity<Boolean> checkCrewMember(@RequestParam Long crewNo,
+                                                   @RequestHeader String userId) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(service.areYouCrewMember(crewNo, userId));
+    }
+
+    @GetMapping(value = "/crew/member/count")
+    public ResponseEntity<Integer> countCrewMember(@RequestHeader String userId) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.howManyJoined(userId));
     }
 
     @GetMapping(value = "/crew/member")
@@ -249,5 +269,4 @@ public class CrewController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization Fail");
         }
     }
-
 }

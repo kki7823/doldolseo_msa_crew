@@ -23,4 +23,12 @@ public class OtherRestUtil {
         HttpEntity<String> entity = new HttpEntity<String>("", headers);
         restTemplate.exchange(builder.toUriString(), HttpMethod.PUT, entity, String.class);
     }
+
+    public void crewPost_DeletePost(String url) {
+        HttpHeaders headers = new HttpHeaders();
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+
+        HttpEntity<String> entity = new HttpEntity<String>("", headers);
+        restTemplate.exchange(builder.toUriString(), HttpMethod.DELETE, entity, String.class);
+    }
 }
