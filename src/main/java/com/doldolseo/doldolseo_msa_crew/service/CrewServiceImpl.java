@@ -38,6 +38,35 @@ public class CrewServiceImpl implements CrewService {
     OtherRestUtil restUtil;
 
     /* Crew */
+
+    /*
+    - 크루 생성
+    - 멤버 권한 변경 (USER -> CREWLEADER)
+    */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void createCrew(CrewDTO dto,
+                           MultipartFile imageFile,
+                           String authHeader,
+                           String userId) {
+        String crewImageName = "default_member.png";
+        if (imageFile != null) {
+            if (!imageFile.isEmpty()) {
+                crewImageName = fileUtil.saveCrewImg(dto.getCrewName(), imageFile);
+            }
+        }
+        dto.setCrewImage(crewImageName);
+        dto.setCDate(LocalDateTime.now());
+        dto.setCrewPoint(0);
+        dto.setCrewLeader(userId);
+
+        crewRepository.save((Crew) dtoToEntity(dto));
+
+        String updateMemberUri
+                = "http://doldolseo-member-rest.default.svc.cluster.local:8080/doldolseo/member/role";
+        restUtil.member_UpdateRole(updateMemberUri, authHeader, userId, "PROMOTION"); //권한 변경
+    }
+
     @Override
     public CrewPageDTO getCrewPage(Pageable pageable, String memberId) {
         Page<CrewDTO> crewPage;
@@ -94,34 +123,6 @@ public class CrewServiceImpl implements CrewService {
         dto.setCrewMemberDTO_Wating(entityListToDtoList_CrewMember(crewMemberWating));
 
         return dto;
-    }
-
-    /*
-    - 크루 생성
-    - 멤버 권한 변경 (USER -> CREWLEADER)
-    */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void createCrew(CrewDTO dto,
-                           MultipartFile imageFile,
-                           String authHeader,
-                           String userId) {
-        String crewImageName = "default_member.png";
-        if (imageFile != null) {
-            if (!imageFile.isEmpty()) {
-                crewImageName = fileUtil.saveCrewImg(dto.getCrewName(), imageFile);
-            }
-        }
-        dto.setCrewImage(crewImageName);
-        dto.setCDate(LocalDateTime.now());
-        dto.setCrewPoint(0);
-        dto.setCrewLeader(userId);
-
-        crewRepository.save((Crew) dtoToEntity(dto));
-
-        String updateMemberUri
-                = "http://doldolseo-member-rest.default.svc.cluster.local:8080/doldolseo/member/role";
-        restUtil.member_UpdateRole(updateMemberUri, authHeader, userId, "CREATE"); //변경된 권한
     }
 
     @Override
@@ -191,6 +192,18 @@ public class CrewServiceImpl implements CrewService {
 
         CrewMember crewMember = crewMemberReopsitory.save((CrewMember) dtoToEntity(dtoIn));
         return entityToDto(crewMember);
+    }
+
+    @Override
+    public boolean areYouLeaderThisCrew(String memberId, Long crewNo) {
+        String crewLeader = getCrew(crewNo).getCrewDTO().getCrewLeader();
+        return crewLeader.equals(memberId);
+
+    }
+
+    @Override
+    public boolean areYouAlreadyJoined(CrewMemberId id) {
+        return crewMemberReopsitory.existsById(id);
     }
 
     @Override

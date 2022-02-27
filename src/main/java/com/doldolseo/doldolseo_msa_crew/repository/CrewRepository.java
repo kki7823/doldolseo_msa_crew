@@ -19,4 +19,5 @@ public interface CrewRepository extends JpaRepository<Crew, Long> {
 
     @Query(value = "select b from Crew b ,CrewMember c where c.memberId = ?1 and b.crewNo = c.crew.crewNo")
     Page<Object> findAllByMemberId(Pageable pageable, String memberId);
+
 }

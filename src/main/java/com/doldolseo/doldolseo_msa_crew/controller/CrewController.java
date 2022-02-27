@@ -33,6 +33,23 @@ public class CrewController {
     @Autowired
     AuthorityUtil authorityUtil;
 
+    /* Crew */
+    @PostMapping(value = "/crew")
+    public ResponseEntity<?> crewCreate(CrewDTO dtoIn,
+                                        @RequestParam(required = false) MultipartFile imageFile,
+                                        HttpServletRequest request,
+                                        @RequestHeader String userId,
+                                        @RequestHeader String role) {
+        if (authorityUtil.areYouUser(role)) {
+            String authHeader = request.getHeader("Authorization");
+            service.createCrew(dtoIn, imageFile, authHeader, userId);
+            return ResponseEntity.status(HttpStatus.OK).body("Crew Created");
+        } else {
+            System.out.println("[Error] 권한 없음");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization Fail");
+        }
+    }
+
     @GetMapping(value = "/crew")
     public ResponseEntity<CrewPageDTO> getCrewList(@PageableDefault(size = 30, sort = "crewName", direction = Sort.Direction.DESC) Pageable pageable,
                                                    @RequestParam(required = false) String memberId) {
@@ -66,22 +83,6 @@ public class CrewController {
         Boolean result = service.checkCrewName(crewName);
 
         return ResponseEntity.status(HttpStatus.OK).body(result);
-    }
-
-    @PostMapping(value = "/crew")
-    public ResponseEntity<?> crewCreate(CrewDTO dtoIn,
-                                        @RequestParam(required = false) MultipartFile imageFile,
-                                        HttpServletRequest request,
-                                        @RequestHeader String userId,
-                                        @RequestHeader String role) {
-        if (authorityUtil.areYouUser(role)) {
-            String authHeader = request.getHeader("Authorization");
-            service.createCrew(dtoIn, imageFile, authHeader, userId);
-            return ResponseEntity.status(HttpStatus.OK).body("Crew Created");
-        } else {
-            System.out.println("[Error] 권한 없음");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization Fail");
-        }
     }
 
     @PutMapping(value = "/crew/{crewNo}")
@@ -128,7 +129,7 @@ public class CrewController {
                                         HttpServletRequest request) {
         if (authorityUtil.areYouCrewLeader(role)) {
             String authHeader = request.getHeader("Authorization");
-            service.deleteCrew(crewNo, userId, authHeader);
+            service.deleteCrew(crewNo, authHeader, userId);
             return ResponseEntity.status(HttpStatus.OK).body("크루가 폐쇄 되었습니다.");
         } else {
             System.out.println("[Error] 권한 없음");
@@ -154,11 +155,25 @@ public class CrewController {
         }
     }
 
+    /* CrewMember*/
     @PostMapping(value = "/crew/{crewNo}/member")
     public ResponseEntity<?> joinCrew(@RequestBody CrewMemberDTO dtoIn,
                                       @PathVariable(value = "crewNo") Long crewNo,
-                                      @RequestHeader String role) {
-        if (authorityUtil.areYouUser(role)) {
+                                      @RequestHeader String userId) {
+        if (service.areYouLeaderThisCrew(dtoIn.getMemberId(), crewNo)) {
+            System.out.println("[joinCrew] 해당 멤버는 크루장 입니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ALREADY_CREWLEADER");
+
+        } else if (service.areYouAlreadyJoined(new CrewMemberId(crewNo, dtoIn.getMemberId()))) {
+            System.out.println("[joinCrew] 해당 멤버는 가입 대기상태 이거나 이미 가입된 멤버 입니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ALREADY_MEMBER");
+
+        } else if (service.howManyJoined(dtoIn.getMemberId()) > 3) {
+            System.out.println("[joinCrew] 멤버당 3회 이상의 가입은 불가능 합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("CANNOT_JOIN_MORE");
+        }
+
+        if (authorityUtil.isYou(dtoIn.getMemberId(), userId)) {
             CrewMemberDTO dtoOut = service.createCrewMember(dtoIn);
             return ResponseEntity.status(HttpStatus.OK).body(dtoOut);
         } else {

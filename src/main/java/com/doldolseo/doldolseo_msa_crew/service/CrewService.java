@@ -41,6 +41,10 @@ public interface CrewService {
 
     CrewMemberDTO createCrewMember(CrewMemberDTO dtoIn);
 
+    boolean areYouLeaderThisCrew(String memberId, Long crewNo);
+
+    boolean areYouAlreadyJoined(CrewMemberId id);
+
     void updateCrew_Question(CrewDTO dto, Long crewNo);
 
     void deleteCrewMember(CrewMemberId crewMemberId);
