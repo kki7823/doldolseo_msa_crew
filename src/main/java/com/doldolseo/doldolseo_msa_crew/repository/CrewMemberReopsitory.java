@@ -10,14 +10,15 @@ import java.util.List;
 
 @Repository
 public interface CrewMemberReopsitory extends JpaRepository<CrewMember, CrewMemberId> {
-    List<CrewMember> findAllByCrew_CrewNoAndCrewMemberState(Long crew_crewNo, String state);
+    List<CrewMember> findAllByCrew_CrewNo(Long crewNo);
 
-    List<CrewMember> findAllByCrew_CrewLeaderAndCrewMemberState(String crew_crewLeader, String state);
+    @Query(value = "select cm from CrewMember cm where cm.crew.crewNo = ?1 and not cm.memberId = ?2")
+    List<CrewMember> findAllByCrew_CrewNoExceptSelf(Long crewNo, String memberId);
+
+    List<CrewMember> findAllByCrew_CrewLeader(String crewLeader);
 
     @Query(value = "select c.crew from CrewMember c where c.memberId = ?1")
     List<Object> findCrewByMemberId(String memberId);
 
-    Boolean existsByCrewCrewNoAndMemberIdAndCrewMemberState(Long crewNo, String memberId, String state);
-
-    int countCrewMemberByMemberId(String memberId);
+    Integer countCrewMemberByMemberId(String memberId);
 }

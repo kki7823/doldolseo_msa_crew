@@ -1,10 +1,8 @@
 package com.doldolseo.doldolseo_msa_crew.controller;
 
 import com.doldolseo.doldolseo_msa_crew.domain.CrewMemberId;
-import com.doldolseo.doldolseo_msa_crew.dto.CrewAndCrewMemberDTO;
-import com.doldolseo.doldolseo_msa_crew.dto.CrewDTO;
-import com.doldolseo.doldolseo_msa_crew.dto.CrewMemberDTO;
-import com.doldolseo.doldolseo_msa_crew.dto.CrewPageDTO;
+import com.doldolseo.doldolseo_msa_crew.domain.CrewWatingMemberId;
+import com.doldolseo.doldolseo_msa_crew.dto.*;
 import com.doldolseo.doldolseo_msa_crew.service.CrewService;
 import com.doldolseo.doldolseo_msa_crew.utils.AuthorityUtil;
 import org.apache.commons.io.IOUtils;
@@ -54,12 +52,6 @@ public class CrewController {
     public ResponseEntity<CrewPageDTO> getCrewList(@PageableDefault(size = 30, sort = "crewName", direction = Sort.Direction.DESC) Pageable pageable,
                                                    @RequestParam(required = false) String memberId) {
         return ResponseEntity.status(HttpStatus.OK).body(service.getCrewPage(pageable, memberId));
-    }
-
-    //temp
-    @GetMapping(value = "/crew/members/{crewMemberId}")
-    public ResponseEntity<List<CrewDTO>> getCrewListByMember(@PathVariable(value = "crewMemberId") String crewMemberId) throws Exception {
-        return ResponseEntity.status(HttpStatus.OK).body(service.getCrewList(crewMemberId));
     }
 
     @GetMapping(value = "/crew/{crewNo}")
@@ -157,13 +149,13 @@ public class CrewController {
 
     /* CrewMember*/
     @PostMapping(value = "/crew/{crewNo}/member")
-    public ResponseEntity<?> joinCrew(@RequestBody CrewMemberDTO dtoIn,
+    public ResponseEntity<?> joinCrew(@RequestBody CrewWatingMemberDTO dtoIn,
                                       @PathVariable(value = "crewNo") Long crewNo,
                                       @RequestHeader String userId) {
         if (service.areYouLeaderThisCrew(dtoIn.getMemberId(), crewNo)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("해당 멤버는 크루장 입니다.");
 
-        } else if (service.areYouAlreadyJoined(new CrewMemberId(crewNo, dtoIn.getMemberId()))) {
+        } else if (service.areYouAlreadyJoined(crewNo, dtoIn.getMemberId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("해당 멤버는 가입 대기상태 이거나 이미 가입된 멤버 입니다.");
 
         } else if (service.howManyJoined(dtoIn.getMemberId()) > 3) {
@@ -171,7 +163,7 @@ public class CrewController {
         }
 
         if (authorityUtil.isYou(dtoIn.getMemberId(), userId)) {
-            CrewMemberDTO dtoOut = service.createCrewMember(dtoIn);
+            CrewWatingMemberDTO dtoOut = service.createCrewWatingMember(dtoIn);
             return ResponseEntity.status(HttpStatus.OK).body(dtoOut);
         } else {
             System.out.println("[Error] 권한 없음");
@@ -183,7 +175,7 @@ public class CrewController {
     public ResponseEntity<Boolean> checkCrewMember(@RequestParam Long crewNo,
                                                    @RequestHeader String userId) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(service.areYouCrewMember(crewNo, userId));
+                .body(service.areYouCrewMember(new CrewMemberId(crewNo, userId)));
     }
 
     @GetMapping(value = "/crew/member/count")
@@ -198,7 +190,7 @@ public class CrewController {
 
         if (authorityUtil.areYouCrewLeader(role)) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(service.getCrewMember(new CrewMemberId(crewNo, memberId)));
+                    .body(service.getCrewWatingMember(new CrewWatingMemberId(crewNo, memberId)));
         } else {
             System.out.println("[Error] 권한 없음");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization Fail");
@@ -206,16 +198,23 @@ public class CrewController {
     }
 
     @GetMapping(value = "/crew/{crewNo}/members")
-    public ResponseEntity<List<CrewMemberDTO>> getCrewMembers(@PathVariable(value = "crewNo") Long crewNo) throws Exception {
-        return ResponseEntity.status(HttpStatus.OK).body(service.getCrewMemberList(crewNo));
+    public ResponseEntity<List<CrewMemberDTO>> getCrewMembers(@PathVariable(value = "crewNo") Long crewNo,
+                                                              @RequestHeader String userId,
+                                                              @RequestParam String exceptSelf) throws Exception {
+        if (exceptSelf.equals("y"))
+            return ResponseEntity.status(HttpStatus.OK).body(service.getCrewMemberListExcepSelf(crewNo, userId));
+        else
+            return ResponseEntity.status(HttpStatus.OK).body(service.getCrewMemberList(crewNo));
     }
 
-    @PutMapping(value = "/crew/{crewNo}/member/{memberId}")
-    public ResponseEntity<String> updateCrewMemberState(@PathVariable(value = "crewNo") Long crewNo,
-                                                        @PathVariable(value = "memberId") String memberId,
-                                                        @RequestHeader String role) throws Exception {
+
+    @PostMapping(value = "/crew/{crewNo}/member/{memberId}")
+    public ResponseEntity<String> agreeJoin(@PathVariable(value = "crewNo") Long crewNo,
+                                            @PathVariable(value = "memberId") String memberId,
+                                            @RequestHeader String role) throws Exception {
         if (authorityUtil.areYouCrewLeader(role)) {
-            service.updateCrewMember(new CrewMemberId(crewNo, memberId));
+            service.deleteCrewWatingMember(new CrewWatingMemberId(crewNo, memberId));
+            service.createCrewMember(new CrewMemberId(crewNo, memberId));
             return ResponseEntity.status(HttpStatus.OK).body("success");
         } else {
             System.out.println("[Error] 권한 없음");
@@ -228,7 +227,7 @@ public class CrewController {
                                                                @RequestParam(value = "memberId") String memberId,
                                                                @RequestHeader String role) {
         if (authorityUtil.areYouCrewLeader(role)) {
-            service.deleteCrewMember(new CrewMemberId(crewNo, memberId));
+            service.deleteCrewWatingMember(new CrewWatingMemberId(crewNo, memberId));
             return ResponseEntity.status(HttpStatus.OK).body("success");
         } else {
             System.out.println("[Error] 권한 없음");
@@ -262,7 +261,9 @@ public class CrewController {
 
             String authHeader = request.getHeader("Authorization");
             service.updateCrewLeader(userId, idToDelegate, authHeader);
-            service.deleteCrewMember(crewMemberId);
+
+            service.updateCrewMemberRole(new CrewMemberId(crewNo, userId));
+            service.updateCrewMemberRole(new CrewMemberId(crewNo, idToDelegate));
 
             return ResponseEntity.status(HttpStatus.OK).body("Delegated");
         } else {

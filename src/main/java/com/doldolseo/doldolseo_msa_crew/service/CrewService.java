@@ -1,10 +1,8 @@
 package com.doldolseo.doldolseo_msa_crew.service;
 
 import com.doldolseo.doldolseo_msa_crew.domain.CrewMemberId;
-import com.doldolseo.doldolseo_msa_crew.dto.CrewAndCrewMemberDTO;
-import com.doldolseo.doldolseo_msa_crew.dto.CrewDTO;
-import com.doldolseo.doldolseo_msa_crew.dto.CrewMemberDTO;
-import com.doldolseo.doldolseo_msa_crew.dto.CrewPageDTO;
+import com.doldolseo.doldolseo_msa_crew.domain.CrewWatingMemberId;
+import com.doldolseo.doldolseo_msa_crew.dto.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,7 +19,7 @@ public interface CrewService {
 
     CrewAndCrewMemberDTO getCrew(Long crewNo);
 
-    CrewAndCrewMemberDTO getCrew(String crewLeader);
+    CrewAndAllCrewMemberDTO getCrew(String crewLeader);
 
     void updateCrew(CrewDTO dto, Long crewNo) throws Exception;
 
@@ -29,25 +27,33 @@ public interface CrewService {
 
     void deleteCrew(Long crewNo, String authHeader, String userId);
 
-    void updateCrewMember(CrewMemberId crewMemberId);
+    CrewMemberDTO createCrewMember(CrewMemberId crewMemberId);
 
     CrewMemberDTO getCrewMember(CrewMemberId crewMemberId);
 
+    CrewWatingMemberDTO getCrewWatingMember(CrewWatingMemberId crewWatingMemberId);
+
     List<CrewMemberDTO> getCrewMemberList(Long crewrNo);
 
-    Boolean areYouCrewMember(Long crewNo, String memberId);
+    List<CrewMemberDTO> getCrewMemberListExcepSelf(Long crewNo, String memberId);
+
+    Boolean areYouCrewMember(CrewMemberId crewMemberId);
 
     Integer howManyJoined(String memberId);
 
-    CrewMemberDTO createCrewMember(CrewMemberDTO dtoIn);
+    CrewWatingMemberDTO createCrewWatingMember(CrewWatingMemberDTO dtoIn);
 
     boolean areYouLeaderThisCrew(String memberId, Long crewNo);
 
-    boolean areYouAlreadyJoined(CrewMemberId id);
+    boolean areYouAlreadyJoined(Long crewNo, String memberId);
 
     void updateCrew_Question(CrewDTO dto, Long crewNo);
 
     void deleteCrewMember(CrewMemberId crewMemberId);
+
+    void deleteCrewWatingMember(CrewWatingMemberId crewWatingMemberId);
+
+    void updateCrewMemberRole(CrewMemberId crewMemberId);
 
     void updateCrewLeader(String userId, String idToDelegate, String authHeader);
 

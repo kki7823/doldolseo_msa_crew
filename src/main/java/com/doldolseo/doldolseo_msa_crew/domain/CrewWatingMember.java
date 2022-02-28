@@ -9,12 +9,12 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "CREW_MEMBER_TBL")
+@Table(name = "CREW_WATING_MEMBER_TBL")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@IdClass(CrewMemberId.class)
-public class CrewMember implements Serializable {
+@IdClass(CrewWatingMemberId.class)
+public class CrewWatingMember implements Serializable {
     @Id
     @ManyToOne
     @JoinColumn(name = "CREW_NO")
@@ -24,8 +24,14 @@ public class CrewMember implements Serializable {
     @Column(name = "MEMBER_ID")
     private String memberId;
 
-    @Column(name = "MEMBER_ROLE")
-    private String memberRole;
+    @Column(name = "ANSWER_1")
+    private String answerFirst;
+
+    @Column(name = "ANSWER_2")
+    private String answerSecond;
+
+    @Column(name = "ANSWER_3")
+    private String answerThird;
 
     @Column(name = "J_DATE")
     private LocalDateTime jDate;
