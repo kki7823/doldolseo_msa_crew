@@ -241,7 +241,7 @@ public class CrewServiceImpl implements CrewService {
     @Override
     public void deleteCrewMember(CrewMemberId crewMemberId) {
         String deleteCrewPostUri
-                = "http://doldolseo-crew-post-rest.default.svc.cluster.local:8080/doldolseo/crew/post/member" + crewMemberId.getMemberId();
+                = "http://doldolseo-crew-post-rest.default.svc.cluster.local:8080/doldolseo/crew/post/member/" + crewMemberId.getMemberId();
         restUtil.crewPost_DeletePost(deleteCrewPostUri);
         crewMemberReopsitory.deleteById(crewMemberId);
     }

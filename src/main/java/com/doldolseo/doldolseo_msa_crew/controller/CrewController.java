@@ -161,16 +161,13 @@ public class CrewController {
                                       @PathVariable(value = "crewNo") Long crewNo,
                                       @RequestHeader String userId) {
         if (service.areYouLeaderThisCrew(dtoIn.getMemberId(), crewNo)) {
-            System.out.println("[joinCrew] 해당 멤버는 크루장 입니다.");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ALREADY_CREWLEADER");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("해당 멤버는 크루장 입니다.");
 
         } else if (service.areYouAlreadyJoined(new CrewMemberId(crewNo, dtoIn.getMemberId()))) {
-            System.out.println("[joinCrew] 해당 멤버는 가입 대기상태 이거나 이미 가입된 멤버 입니다.");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ALREADY_MEMBER");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("해당 멤버는 가입 대기상태 이거나 이미 가입된 멤버 입니다.");
 
         } else if (service.howManyJoined(dtoIn.getMemberId()) > 3) {
-            System.out.println("[joinCrew] 멤버당 3회 이상의 가입은 불가능 합니다.");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("CANNOT_JOIN_MORE");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("멤버당 3회 이상의 가입은 불가능 합니다");
         }
 
         if (authorityUtil.isYou(dtoIn.getMemberId(), userId)) {
