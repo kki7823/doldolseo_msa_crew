@@ -105,7 +105,7 @@ public class CrewServiceImpl implements CrewService {
     @Override
     public CrewAndCrewMemberDTO getCrew(Long crewNo) {
         Crew crew = crewRepository.findByCrewNo(crewNo);
-        List<CrewMember> crewMember = crewMemberReopsitory.findAllByCrew_CrewNo(crewNo);
+        List<CrewMember> crewMember = crewMemberReopsitory.findAllByCrew_CrewNoOrderByMemberRole(crewNo);
 
         CrewAndCrewMemberDTO dto = new CrewAndCrewMemberDTO();
         dto.setCrew(entityToDto(crew));
@@ -118,7 +118,7 @@ public class CrewServiceImpl implements CrewService {
         Crew crew = crewRepository.findByCrewLeader(crewLeader);
 
         List<CrewMember> crewMember =
-                crewMemberReopsitory.findAllByCrew_CrewLeader(crewLeader);
+                crewMemberReopsitory.findAllByCrew_CrewLeaderOrderByMemberRole(crewLeader);
         List<CrewWatingMember> crewMemberWating =
                 crewWatingMemberRepository.findAllByCrew_CrewLeader(crewLeader);
 
@@ -239,7 +239,7 @@ public class CrewServiceImpl implements CrewService {
     @Override
     public List<CrewMemberDTO> getCrewMemberList(Long crewNo) {
         return entityListToDtoList_CrewMember(crewMemberReopsitory
-                .findAllByCrew_CrewNo(crewNo));
+                .findAllByCrew_CrewNoOrderByMemberRole(crewNo));
     }
 
     @Override
@@ -257,9 +257,15 @@ public class CrewServiceImpl implements CrewService {
     }
 
     @Override
-    public Boolean areYouCrewMember(CrewMemberId crewMemberId) {
+    public Boolean checkMemberBelongCrew(CrewMemberId crewMemberId) {
         return crewMemberReopsitory
                 .existsById(crewMemberId);
+    }
+
+    @Override
+    public Boolean checkIdHasAnyCrew(String memberId) {
+        return crewMemberReopsitory
+                .existsByMemberId(memberId);
     }
 
     @Override

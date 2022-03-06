@@ -37,7 +37,9 @@ public interface CrewService {
 
     List<CrewMemberDTO> getCrewMemberListExcepSelf(Long crewNo, String memberId);
 
-    Boolean areYouCrewMember(CrewMemberId crewMemberId);
+    Boolean checkMemberBelongCrew(CrewMemberId crewMemberId);
+
+     Boolean checkIdHasAnyCrew(String memberId);
 
     Integer howManyJoined(String memberId);
 

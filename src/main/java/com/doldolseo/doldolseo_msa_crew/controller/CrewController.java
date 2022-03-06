@@ -171,23 +171,28 @@ public class CrewController {
         }
     }
 
-    @GetMapping(value = "/crew/member/check")
-    public ResponseEntity<Boolean> checkCrewMember(@RequestParam Long crewNo,
-                                                   @RequestHeader String userId) {
+    @GetMapping(value = "/crew/{crewNo}/check/member/{memberId}")
+    public ResponseEntity<Boolean> areYouMemberInThisCrew(@PathVariable("crewNo") Long crewNo,
+                                                          @PathVariable("memberId") String userId) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(service.areYouCrewMember(new CrewMemberId(crewNo, userId)));
+                .body(service.checkMemberBelongCrew(new CrewMemberId(crewNo, userId)));
     }
 
-    @GetMapping(value = "/crew/member/count")
+    @GetMapping(value = "/crew/check/member/{memberId}")
+    public ResponseEntity<Boolean> areYouJoinedAnyCrew(@PathVariable("memberId") String memberId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(service.checkIdHasAnyCrew(memberId));
+    }
+
+    @GetMapping(value = "/crew/check/member")
     public ResponseEntity<Integer> countCrewMember(@RequestHeader String userId) {
         return ResponseEntity.status(HttpStatus.OK).body(service.howManyJoined(userId));
     }
 
     @GetMapping(value = "/crew/member")
-    public ResponseEntity<?> getCrewMember(@RequestParam Long crewNo,
-                                           @RequestParam String memberId,
-                                           @RequestHeader String role) {
-
+    public ResponseEntity<?> getCrewWatingMember(@RequestParam Long crewNo,
+                                                 @RequestParam String memberId,
+                                                 @RequestHeader String role) {
         if (authorityUtil.areYouCrewLeader(role)) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(service.getCrewWatingMember(new CrewWatingMemberId(crewNo, memberId)));
@@ -223,9 +228,22 @@ public class CrewController {
     }
 
     @DeleteMapping(value = "/crew/{crewNo}/member")
-    public ResponseEntity<String> deleteCrewMemberByCrewLeader(@PathVariable(value = "crewNo") Long crewNo,
-                                                               @RequestParam(value = "memberId") String memberId,
-                                                               @RequestHeader String role) {
+    public ResponseEntity<String> kickMember(@PathVariable(value = "crewNo") Long crewNo,
+                                             @RequestParam(value = "memberId") String memberId,
+                                             @RequestHeader String role) {
+        if (authorityUtil.areYouCrewLeader(role)) {
+            service.deleteCrewMember(new CrewMemberId(crewNo, memberId));
+            return ResponseEntity.status(HttpStatus.OK).body("success");
+        } else {
+            System.out.println("[Error] 권한 없음");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization Fail");
+        }
+    }
+
+    @DeleteMapping(value = "/crew/{crewNo}/member/wating")
+    public ResponseEntity<String> denyJoin(@PathVariable(value = "crewNo") Long crewNo,
+                                           @RequestParam(value = "memberId") String memberId,
+                                           @RequestHeader String role) {
         if (authorityUtil.areYouCrewLeader(role)) {
             service.deleteCrewWatingMember(new CrewWatingMemberId(crewNo, memberId));
             return ResponseEntity.status(HttpStatus.OK).body("success");
