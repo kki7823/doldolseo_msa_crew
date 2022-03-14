@@ -70,7 +70,7 @@ public class CrewServiceImpl implements CrewService {
         crewMemberReopsitory.save((CrewMember) dtoToEntity(crewMemberDTO));
 
         String updateMemberUri
-                = "http://doldolseo-member-rest.default.svc.cluster.local:8080/doldolseo/member/role";
+                = "http://doldolseo-member-rest.rest.svc.cluster.local:8080/doldolseo/member/role";
         restUtil.member_UpdateRole(updateMemberUri, authHeader, userId, "PROMOTION"); //권한 변경
     }
 
@@ -180,11 +180,11 @@ public class CrewServiceImpl implements CrewService {
     @Override
     public void deleteCrew(Long crewNo, String authHeader, String userId) {
         String deleteCrewPostUri
-                = "http://doldolseo-crew-post-rest.default.svc.cluster.local:8080/doldolseo/crew/post/all/" + crewNo;
+                = "http://doldolseo-crew-post-rest.rest.svc.cluster.local:8080/doldolseo/crew/post/all/" + crewNo;
         restUtil.crewPost_DeletePost(deleteCrewPostUri);
 
         String updateMemberUri
-                = "http://doldolseo-member-rest.default.svc.cluster.local:8080/doldolseo/member/role";
+                = "http://doldolseo-member-rest.rest.svc.cluster.local:8080/doldolseo/member/role";
         restUtil.member_UpdateRole(updateMemberUri, authHeader, userId, "DEMOTION");
         crewRepository.deleteById(crewNo);
     }
@@ -284,7 +284,7 @@ public class CrewServiceImpl implements CrewService {
     @Override
     public void deleteCrewMember(CrewMemberId crewMemberId) {
         String deleteCrewPostUri
-                = "http://doldolseo-crew-post-rest.default.svc.cluster.local:8080/doldolseo/crew/post/member/" + crewMemberId.getMemberId();
+                = "http://doldolseo-crew-post-rest.rest.svc.cluster.local:8080/doldolseo/crew/post/member/" + crewMemberId.getMemberId();
         restUtil.crewPost_DeletePost(deleteCrewPostUri);
         crewMemberReopsitory.deleteById(crewMemberId);
     }
@@ -302,7 +302,7 @@ public class CrewServiceImpl implements CrewService {
             crew.setCrewLeader(idToDelegate);
 
             String updateMemberUri
-                    = "http://doldolseo-member-rest.default.svc.cluster.local:8080/doldolseo/member/role";
+                    = "http://doldolseo-member-rest.rest.svc.cluster.local:8080/doldolseo/member/role";
             restUtil.member_UpdateRole(updateMemberUri, authHeader, idToDelegate, "PROMOTION");
             restUtil.member_UpdateRole(updateMemberUri, authHeader, userId, "DEMOTION");
         } else {
