@@ -59,9 +59,9 @@ public class CrewController {
         return ResponseEntity.status(HttpStatus.OK).body(service.getCrew(crewNo));
     }
 
-    @GetMapping(value = "/crew/crewName/{crewNo}")
+    @GetMapping(value = "/crew/{crewNo}/name")
     @ResponseBody
-    public String getMemberNickname(@PathVariable Long crewNo) throws Exception {
+    public String getCrewName(@PathVariable Long crewNo) throws Exception {
         return service.getCrewName(crewNo);
     }
 
