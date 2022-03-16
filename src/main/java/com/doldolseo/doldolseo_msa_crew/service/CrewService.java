@@ -23,7 +23,11 @@ public interface CrewService {
 
     void updateCrew(CrewDTO dto, Long crewNo) throws Exception;
 
-    String updateCrew_Image(MultipartFile imageFile, Long crewNo);
+    String updateCrewImage(MultipartFile imageFile, Long crewNo) throws Exception;
+
+    void updateCrewQuestion(CrewDTO dto, Long crewNo);
+
+    void updateCrewPoint(Long crewNo, Integer crewPoint) throws Exception;
 
     void deleteCrew(Long crewNo, String authHeader, String userId);
 
@@ -39,7 +43,7 @@ public interface CrewService {
 
     Boolean checkMemberBelongCrew(CrewMemberId crewMemberId);
 
-     Boolean checkIdHasAnyCrew(String memberId);
+    Boolean checkIdHasAnyCrew(String memberId);
 
     Integer howManyJoined(String memberId);
 
@@ -48,8 +52,6 @@ public interface CrewService {
     boolean areYouLeaderThisCrew(String memberId, Long crewNo);
 
     boolean areYouAlreadyJoined(Long crewNo, String memberId);
-
-    void updateCrew_Question(CrewDTO dto, Long crewNo);
 
     void deleteCrewMember(CrewMemberId crewMemberId);
 

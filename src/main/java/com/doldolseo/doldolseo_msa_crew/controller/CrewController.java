@@ -93,7 +93,7 @@ public class CrewController {
                                                       @RequestHeader String role,
                                                       @PathVariable(value = "crewNo") Long crewNo) throws Exception {
         if (authorityUtil.areYouCrewLeader(role)) {
-            service.updateCrew_Question(dto, crewNo);
+            service.updateCrewQuestion(dto, crewNo);
             return ResponseEntity.status(HttpStatus.OK).body("수정 완료");
         } else {
             System.out.println("[Error] 권한 없음");
@@ -107,11 +107,18 @@ public class CrewController {
                                                   @RequestHeader String role,
                                                   HttpServletResponse response) throws Exception {
         if (authorityUtil.areYouCrewLeader(role)) {
-            return ResponseEntity.status(HttpStatus.OK).body(service.updateCrew_Image(imageFile, crewNo));
+            return ResponseEntity.status(HttpStatus.OK).body(service.updateCrewImage(imageFile, crewNo));
         } else {
             System.out.println("[Error] 권한 없음");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization Fail");
         }
+    }
+
+    @PutMapping(value = "/crew/{crewNo}/point")
+    public ResponseEntity<String> updateCrewPoint(@PathVariable(value = "crewNo") Long crewNo,
+                                                  @RequestParam Integer crewPoint) throws Exception {
+        service.updateCrewPoint(crewNo, crewPoint);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @DeleteMapping(value = "/crew/{crewNo}")
@@ -151,7 +158,7 @@ public class CrewController {
     @PostMapping(value = "/crew/{crewNo}/member")
     public ResponseEntity<?> joinCrew(@RequestBody CrewWatingMemberDTO dtoIn,
                                       @PathVariable(value = "crewNo") Long crewNo,
-                                      @RequestHeader String userId) {
+                                      @RequestHeader String userId) throws Exception {
         if (service.areYouLeaderThisCrew(dtoIn.getMemberId(), crewNo)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("해당 멤버는 크루장 입니다.");
 
@@ -164,6 +171,7 @@ public class CrewController {
 
         if (authorityUtil.isYou(dtoIn.getMemberId(), userId)) {
             CrewWatingMemberDTO dtoOut = service.createCrewWatingMember(dtoIn);
+            service.updateCrewPoint(crewNo, 10);
             return ResponseEntity.status(HttpStatus.OK).body(dtoOut);
         } else {
             System.out.println("[Error] 권한 없음");
@@ -220,6 +228,7 @@ public class CrewController {
         if (authorityUtil.areYouCrewLeader(role)) {
             service.deleteCrewWatingMember(new CrewWatingMemberId(crewNo, memberId));
             service.createCrewMember(new CrewMemberId(crewNo, memberId));
+            service.updateCrewPoint(crewNo, 100);
             return ResponseEntity.status(HttpStatus.OK).body("success");
         } else {
             System.out.println("[Error] 권한 없음");
