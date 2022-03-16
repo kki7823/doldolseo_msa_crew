@@ -21,6 +21,8 @@ public interface CrewService {
 
     CrewAndAllCrewMemberDTO getCrew(String crewLeader);
 
+    String getCrewName(Long crewNo) throws Exception;
+
     void updateCrew(CrewDTO dto, Long crewNo) throws Exception;
 
     String updateCrewImage(MultipartFile imageFile, Long crewNo) throws Exception;

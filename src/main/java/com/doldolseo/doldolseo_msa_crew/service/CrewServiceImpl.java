@@ -131,6 +131,14 @@ public class CrewServiceImpl implements CrewService {
     }
 
     @Override
+    public String getCrewName(Long crewNo) throws Exception {
+        return (String) crewRepository.findCrewNameByCrewNo(crewNo).orElseThrow(() -> {
+            return new Exception("존재하지 않는 크루 입니다.");
+                }
+        );
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateCrew(CrewDTO dto, Long crewNo) {
         Crew crew = crewRepository.findByCrewNo(crewNo);
@@ -158,9 +166,10 @@ public class CrewServiceImpl implements CrewService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String updateCrewImage(MultipartFile imageFile, Long crewNo) throws Exception {
-        Crew crew = crewRepository.findById(crewNo).orElseThrow(()->{
+        Crew crew = crewRepository.findById(crewNo).orElseThrow(() -> {
             return new Exception("해당하는 크루가 없습니다");
-        });;
+        });
+        ;
 
         String crewImageName = "default_member.png";
         if (imageFile != null) {
@@ -175,7 +184,7 @@ public class CrewServiceImpl implements CrewService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateCrewPoint(Long crewNo, Integer crewPoint) throws Exception {
-        Crew crew = crewRepository.findById(crewNo).orElseThrow(()->{
+        Crew crew = crewRepository.findById(crewNo).orElseThrow(() -> {
             return new Exception("해당하는 크루가 없습니다");
         });
 

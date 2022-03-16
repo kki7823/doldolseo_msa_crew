@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface CrewRepository extends JpaRepository<Crew, Long> {
     boolean existsByCrewName(String crewName);
@@ -17,7 +19,9 @@ public interface CrewRepository extends JpaRepository<Crew, Long> {
 
     boolean existsByCrewLeader(String id);
 
-    @Query(value = "select b from Crew b ,CrewMember c where c.memberId = ?1 and b.crewNo = c.crew.crewNo")
+    @Query(value = "select c from Crew c  ,CrewMember m where m.memberId = ?1 and c.crewNo = m.crew.crewNo")
     Page<Object> findAllByMemberId(Pageable pageable, String memberId);
 
+    @Query(value = "select c.crewName from Crew c where c.crewNo = ?1")
+    Optional<Object> findCrewNameByCrewNo(Long crewNo);
 }
