@@ -18,14 +18,10 @@ repositories {
     mavenCentral()
 }
 
-//ext {
-//    set('springCloudVersion', "2021.0.0")
-//}
-
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-//    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     runtimeOnly 'mysql:mysql-connector-java'
 
     annotationProcessor 'org.projectlombok:lombok'
@@ -33,12 +29,6 @@ dependencies {
     implementation 'commons-io:commons-io:2.11.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
-
-//dependencyManagement {
-//    imports {
-//        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-//    }
-//}
 
 test {
     useJUnitPlatform()

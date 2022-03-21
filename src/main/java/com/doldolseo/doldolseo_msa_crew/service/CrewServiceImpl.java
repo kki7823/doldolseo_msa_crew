@@ -7,6 +7,7 @@ import com.doldolseo.doldolseo_msa_crew.repository.CrewRepository;
 import com.doldolseo.doldolseo_msa_crew.repository.CrewWatingMemberRepository;
 import com.doldolseo.doldolseo_msa_crew.utils.PagingParams;
 import com.doldolseo.doldolseo_msa_crew.utils.OtherRestUtil;
+import com.doldolseo.doldolseo_msa_crew.utils.RedisUtil;
 import com.doldolseo.doldolseo_msa_crew.utils.UploadCrewFileUtil;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -34,6 +35,8 @@ public class CrewServiceImpl implements CrewService {
     ModelMapper modelMapper;
     @Autowired
     OtherRestUtil restUtil;
+    @Autowired
+    RedisUtil redisUtil;
 
     /* Crew */
 
@@ -132,10 +135,15 @@ public class CrewServiceImpl implements CrewService {
 
     @Override
     public String getCrewName(Long crewNo) throws Exception {
-        return (String) crewRepository.findCrewNameByCrewNo(crewNo).orElseThrow(() -> {
-            return new Exception("존재하지 않는 크루 입니다.");
-                }
-        );
+        if (redisUtil.isExist(crewNo)) {
+            return redisUtil.get(crewNo);
+        } else {
+            String crewName = (String) crewRepository.findCrewNameByCrewNo(crewNo).orElseThrow(() -> {
+                return new Exception("존재하지 않는 크루 입니다.");
+            });
+            redisUtil.put(crewNo, crewName, 60L);
+            return crewName;
+        }
     }
 
     @Override
