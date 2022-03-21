@@ -135,13 +135,13 @@ public class CrewServiceImpl implements CrewService {
 
     @Override
     public String getCrewName(Long crewNo) throws Exception {
-        if (redisUtil.isExist(crewNo)) {
-            return redisUtil.get(crewNo);
+        if (redisUtil.isExist(String.valueOf(crewNo))) {
+            return redisUtil.get(String.valueOf(crewNo));
         } else {
             String crewName = (String) crewRepository.findCrewNameByCrewNo(crewNo).orElseThrow(() -> {
                 return new Exception("존재하지 않는 크루 입니다.");
             });
-            redisUtil.put(crewNo, crewName, 60L);
+            redisUtil.put(String.valueOf(crewNo), crewName, 60L);
             return crewName;
         }
     }

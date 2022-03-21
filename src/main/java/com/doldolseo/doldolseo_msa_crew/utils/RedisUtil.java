@@ -9,25 +9,25 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class RedisUtil {
     @Autowired
-    private RedisTemplate<Long, String> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
 
-    public void put(Long key, String value, Long expTimeMin) {
+    public void put(String key, String value, Long expTimeMin) {
         redisTemplate.opsForValue().set(key, value, expTimeMin, TimeUnit.MINUTES);
     }
 
-    public void put(Long key, String value) {
+    public void put(String key, String value) {
         redisTemplate.opsForValue().set(key, value);
     }
 
-    public String get(Long key) {
+    public String get(String key) {
         return redisTemplate.opsForValue().get(key);
     }
 
-    public void delete(Long key) {
+    public void delete(String key) {
         redisTemplate.delete(key);
     }
 
-    public boolean isExist(Long key) {
+    public boolean isExist(String key) {
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
     }
 }
