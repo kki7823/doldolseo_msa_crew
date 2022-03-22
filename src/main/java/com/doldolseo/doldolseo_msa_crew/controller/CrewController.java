@@ -49,7 +49,7 @@ public class CrewController {
     }
 
     @GetMapping(value = "/crew")
-    public ResponseEntity<CrewPageDTO> getCrewList(@PageableDefault(size = 30, sort = "crewName", direction = Sort.Direction.DESC) Pageable pageable,
+    public ResponseEntity<CrewPageDTO> getCrewList(@PageableDefault(size = 12, sort = "crewName", direction = Sort.Direction.DESC) Pageable pageable,
                                                    @RequestParam(required = false) String memberId) {
         return ResponseEntity.status(HttpStatus.OK).body(service.getCrewPage(pageable, memberId));
     }
