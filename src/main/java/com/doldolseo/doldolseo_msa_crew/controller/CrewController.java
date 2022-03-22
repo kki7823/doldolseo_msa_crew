@@ -15,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
@@ -49,7 +48,7 @@ public class CrewController {
     }
 
     @GetMapping(value = "/crew")
-    public ResponseEntity<CrewPageDTO> getCrewList(@PageableDefault(size = 12, sort = "crewName", direction = Sort.Direction.DESC) Pageable pageable,
+    public ResponseEntity<CrewPageDTO> getCrewList(@PageableDefault(size = 12, sort = "cDate", direction = Sort.Direction.DESC) Pageable pageable,
                                                    @RequestParam(required = false) String memberId) {
         return ResponseEntity.status(HttpStatus.OK).body(service.getCrewPage(pageable, memberId));
     }
